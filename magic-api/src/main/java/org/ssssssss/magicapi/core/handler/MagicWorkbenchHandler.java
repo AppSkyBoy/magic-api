@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.socket.WebSocketSession;
 import org.ssssssss.magicapi.core.annotation.Message;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.MessageType;
@@ -13,6 +14,7 @@ import org.ssssssss.magicapi.core.context.MagicUser;
 import org.ssssssss.magicapi.core.interceptor.AuthorizationInterceptor;
 import org.ssssssss.magicapi.utils.IpUtils;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -45,6 +47,13 @@ public class MagicWorkbenchHandler {
 		} catch (Exception e) {
 			if(!authorizationInterceptor.requireLogin()){
 				user = guest;
+				WebSocketSession webSocketSession = session.getWebSocketSession();
+				if(Objects.nonNull(webSocketSession)) {
+					Principal principal = webSocketSession.getPrincipal();
+					if(Objects.nonNull(principal)){
+						user = new MagicUser(webSocketSession.getId(), principal.getName(),webSocketSession.getId());
+					}
+				}
 			}
 		}
 		if (user != null) {
